@@ -7,15 +7,15 @@ public class Player : MonoBehaviour
     public float speed; // 스피드 함수 선언
     float hAxis; // 이동을 위한 함수 선언
     float vAxis; // 이동을 위한 함수 선언
-    bool wDown;
-    bool jDown;
+    bool wDown; // 걷기를 위한 함수 선언
+    bool jDown; // 점프를 위한 함수 선언
     //bool iDown;
 
-    bool isjump;
-    bool isDodge;
+    bool isjump; // 당신은 지금 점프를 하고 있습니까? 함수 선언
+    bool isDodge; // 닷지를 위한 함수 선언
 
     Vector3 moveVec; // 이동을 위한 함수 선언
-    Vector3 dodgeVec;
+    Vector3 dodgeVec; // 닷지를 위한 함수 선언
 
     Rigidbody rigid;
     Animator anim;
@@ -24,8 +24,8 @@ public class Player : MonoBehaviour
 
     void Awake()
     {
-        rigid = GetComponent<Rigidbody>();
-        anim = GetComponentInChildren<Animator>();
+        rigid = GetComponent<Rigidbody>(); // 물리효과를 위해 Rigidbody 변수 선언 후, 초기화
+        anim = GetComponentInChildren<Animator>(); // 
     }
 
     
@@ -40,15 +40,18 @@ public class Player : MonoBehaviour
         Dodge();
     }
 
+    //Input 관련 함수를 묶어주었다.
     void GetInput()
     {
         hAxis = Input.GetAxisRaw("Horizontal"); //이동 함수의 초기화
         vAxis = Input.GetAxisRaw("Vertical"); //이동 함수의 초기화
-        wDown = Input.GetButton("Walk");
-        jDown = Input.GetButtonDown("Jump");
+        wDown = Input.GetButton("Walk"); //걷기 함수의 초기화
+        jDown = Input.GetButtonDown("Jump"); //점프 함수의 초기화
         //iDown = Input.GetButtonDown("Interation");
     }
 
+
+    //move 관련 함수들도 합침
     void Move()
     {
         //vector3를 쓰는건 x, y, z를 쓰기 위해서다.
@@ -81,33 +84,35 @@ public class Player : MonoBehaviour
 
     void Jump()
     {
-        if(jDown && moveVec == Vector3.zero && !isjump && !isDodge)
+        if(jDown && moveVec == Vector3.zero && !isjump && !isDodge) // 조건을 통해 닷지든 점프든 한개만 
         {
-            rigid.AddForce(Vector3.up * 15, ForceMode.Impulse);
-            anim.SetBool("isJump", true);
+            rigid.AddForce(Vector3.up * 15, ForceMode.Impulse); // 점프 파워를 지정
+            anim.SetBool("isJump", true); // 연속 점프를 막기 위한것
             anim.SetTrigger("doJump");
             isjump = true;
         }
     }
     void Dodge()
     {
-        if(jDown && moveVec != Vector3.zero && !isjump && !isDodge)
+        //점프를 하고 있지 않을때 
+        if(jDown && moveVec != Vector3.zero && !isjump && !isDodge) // 조건을 통해 닷지든 점프든 한개만 
         {
-            dodgeVec = moveVec;
-            speed *= 2;
-            anim.SetTrigger("doDodge");
-            isDodge = true;
+            dodgeVec = moveVec; //닷지백터의 이용
+            speed *= 2; //속도를 두배로 늘렸다.
+            anim.SetTrigger("doDodge"); //애니메이션
+            isDodge = true; 
 
-            Invoke("DodgeOut", 0.5f); 
+            Invoke("DodgeOut", 0.5f); // 인보크 함수로 시간차 함수를 호출하였다. 첫번째 파라메터와 두번째 파라메터를 적용하였다.  
         }
     }
 
     void DodgeOut()
     {
         speed *= 0.5f;
-        isDodge = false;
+        isDodge = false; // 닷지가 끝나면 
     }
 
+    //점프 후 바닥에 닿았을때를 위한 함수
     void OnCollisionEnter(Collision collision)
     {
         if(collision.gameObject.tag == "Floor")
