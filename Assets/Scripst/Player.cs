@@ -9,7 +9,7 @@ public class Player : MonoBehaviour
     float vAxis; // 이동을 위한 변수 선언
     bool wDown; // 걷기를 위한 변수 선언
     bool jDown; // 점프를 위한 변수 선언
-    //bool iDown;
+    bool iDown;
 
     bool isjump; // 당신은 지금 점프를 하고 있습니까? 변수 선언
     bool isDodge; // 닷지를 위한 변수 선언
@@ -20,7 +20,7 @@ public class Player : MonoBehaviour
     Rigidbody rigid; // 물리를 위한 변수 선언
     Animator anim; // 애니메이션을 위한 변수 선언
 
-    GameObject nearObject;
+    GameObject nearObject; //오브젝트 먹기를 위한 변수 선언
 
     void Awake()
     {
@@ -47,7 +47,7 @@ public class Player : MonoBehaviour
         vAxis = Input.GetAxisRaw("Vertical"); //이동 함수의 초기화
         wDown = Input.GetButton("Walk"); //걷기 함수의 초기화
         jDown = Input.GetButtonDown("Jump"); //점프 함수의 초기화
-        //iDown = Input.GetButtonDown("Interation");
+        iDown = Input.GetButtonDown("Interation");
     }
 
 
@@ -122,19 +122,20 @@ public class Player : MonoBehaviour
         }
     }
 
-    //    void OnTriggerStay(Collider other)
-    //    {
-    //        if(other.tag == "weapon")
-    //            nearObject = other.gameObject;
-    //        Debug.Log(nearObject.name);
-    //    }
+    void OnTriggerStay(Collider other)
+    {
+        if (other.tag == "weapon") // 웨폰 태그면 아래의 오브젝트에 저장한다.
+            nearObject = other.gameObject;
+        
+        Debug.Log(nearObject.name);
+    }
 
 
-    //    void OnTriggerExit(Collider other)
-    //    {
-    //        if (other.tag == "weapon")
-    //            nearObject = null;
-    //    }
+    void OnTriggerExit(Collider other)
+    {
+        if (other.tag == "weapon") // 웨폰 태그의 영향에서 벗어나면 널값을 적용한다.
+            nearObject = null;
+    }
 
 
 }
