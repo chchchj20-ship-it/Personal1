@@ -5,6 +5,9 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     public float speed; // 스피드 변수 선언
+    public GameObject[] weapons;
+    public bool[] hasweapons;
+
     float hAxis; // 이동을 위한 변수 선언
     float vAxis; // 이동을 위한 변수 선언
     bool wDown; // 걷기를 위한 변수 선언
@@ -38,6 +41,7 @@ public class Player : MonoBehaviour
         Turn();
         Jump();
         Dodge();
+        Interation();
     }
 
     //Input 관련 함수를 묶어주었다.
@@ -110,6 +114,21 @@ public class Player : MonoBehaviour
     {
         speed *= 0.5f;
         isDodge = false; // 닷지가 끝나면 
+    }
+
+    void Interation()
+    {
+        if(iDown && nearObject != null && !isjump && !isDodge)
+        {
+            if(nearObject.tag == "Weapon")
+            {
+                item item = nearObject.GetComponent<item>();
+                int weaponIndex = item.value;
+                hasweapons[weaponIndex] = true;
+
+                Destroy(nearObject);
+            }
+        }
     }
 
     //점프 후 바닥에 닿았을때를 위한 함수

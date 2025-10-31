@@ -1509,6 +1509,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 15
+  weapons: []
+  hasweapons: 000000
 --- !u!136 &2119105187
 CapsuleCollider:
   m_ObjectHideFlags: 0
