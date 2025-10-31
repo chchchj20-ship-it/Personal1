@@ -4,27 +4,27 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public float speed; // 스피드 함수 선언
-    float hAxis; // 이동을 위한 함수 선언
-    float vAxis; // 이동을 위한 함수 선언
-    bool wDown; // 걷기를 위한 함수 선언
-    bool jDown; // 점프를 위한 함수 선언
+    public float speed; // 스피드 변수 선언
+    float hAxis; // 이동을 위한 변수 선언
+    float vAxis; // 이동을 위한 변수 선언
+    bool wDown; // 걷기를 위한 변수 선언
+    bool jDown; // 점프를 위한 변수 선언
     //bool iDown;
 
-    bool isjump; // 당신은 지금 점프를 하고 있습니까? 함수 선언
-    bool isDodge; // 닷지를 위한 함수 선언
+    bool isjump; // 당신은 지금 점프를 하고 있습니까? 변수 선언
+    bool isDodge; // 닷지를 위한 변수 선언
 
-    Vector3 moveVec; // 이동을 위한 함수 선언
-    Vector3 dodgeVec; // 닷지를 위한 함수 선언
+    Vector3 moveVec; // 이동을 위한 변수 선언
+    Vector3 dodgeVec; // 닷지를 위한 변수 선언
 
-    Rigidbody rigid;
-    Animator anim;
+    Rigidbody rigid; // 물리를 위한 변수 선언
+    Animator anim; // 애니메이션을 위한 변수 선언
 
     GameObject nearObject;
 
     void Awake()
     {
-        rigid = GetComponent<Rigidbody>(); // 물리효과를 위해 Rigidbody 변수 선언 후, 초기화
+        rigid = GetComponent<Rigidbody>(); // 물리효과를 위해 Rigidbody 함수 선언 후, 변수 초기화
         anim = GetComponentInChildren<Animator>(); // 
     }
 
