@@ -10,12 +10,17 @@ public class Player : MonoBehaviour
 
     float hAxis; // 이동을 위한 변수 선언
     float vAxis; // 이동을 위한 변수 선언
+
     bool wDown; // 걷기를 위한 변수 선언
     bool jDown; // 점프를 위한 변수 선언
     bool iDown;
+    bool sDown1;
+    bool sDown2;
+    bool sDown3;
 
     bool isjump; // 당신은 지금 점프를 하고 있습니까? 변수 선언
     bool isDodge; // 닷지를 위한 변수 선언
+    bool isSwap;
 
     Vector3 moveVec; // 이동을 위한 변수 선언
     Vector3 dodgeVec; // 닷지를 위한 변수 선언
@@ -24,6 +29,8 @@ public class Player : MonoBehaviour
     Animator anim; // 애니메이션을 위한 변수 선언
 
     GameObject nearObject; //오브젝트 먹기를 위한 변수 선언
+    GameObject equipWeapon;
+    int equipWeaponIndex = -1;
 
     void Awake()
     {
@@ -31,7 +38,7 @@ public class Player : MonoBehaviour
         anim = GetComponentInChildren<Animator>(); // 
     }
 
-    
+
 
     // Update is called once per frame
     void Update()
@@ -41,6 +48,7 @@ public class Player : MonoBehaviour
         Turn();
         Jump();
         Dodge();
+        Swap();
         Interation();
     }
 
@@ -52,6 +60,9 @@ public class Player : MonoBehaviour
         wDown = Input.GetButton("Walk"); //걷기 함수의 초기화
         jDown = Input.GetButtonDown("Jump"); //점프 함수의 초기화
         iDown = Input.GetButtonDown("Interation");
+        sDown1 = Input.GetButtonDown("Swap1");
+        sDown2 = Input.GetButtonDown("Swap2");
+        sDown3 = Input.GetButtonDown("Swap3");
     }
 
 
@@ -60,7 +71,7 @@ public class Player : MonoBehaviour
     {
         //vector3를 쓰는건 x, y, z를 쓰기 위해서다.
         // x축과 y축, z 축에 대해서 사용할 것을 확인한다. 노멀라이즈 방향값이 1로 보정된 벡터를 사용해야 대각선도 동일한 값을 가진다.
-        moveVec = new Vector3(hAxis, 0, vAxis).normalized; 
+        moveVec = new Vector3(hAxis, 0, vAxis).normalized;
 
         if (isDodge)
             moveVec = dodgeVec;
@@ -69,11 +80,13 @@ public class Player : MonoBehaviour
         //transform을 사용하면 델타 타임을 꼭 넣어야 한다.
         //델타 타임은 초당 실행횟수인데 간단하게 말하면, 똥컴이든 좋은컴이든 동일한 속도로 1초당 이동거리가 동일하게 유지된다.
 
+        if(isSwap)
+            moveVec = Vector3.zero;
+
         if (wDown)
             transform.position += moveVec * speed * 0.3f * Time.deltaTime;
         else
             transform.position += moveVec * speed * Time.deltaTime;
-
 
 
         anim.SetBool("isRun", moveVec != Vector3.zero);
@@ -88,7 +101,7 @@ public class Player : MonoBehaviour
 
     void Jump()
     {
-        if(jDown && moveVec == Vector3.zero && !isjump && !isDodge) // 조건을 통해 닷지든 점프든 한개만 
+        if (jDown && moveVec == Vector3.zero && !isjump && !isDodge && !isSwap) // 조건을 통해 닷지든 점프든 한개만 
         {
             rigid.AddForce(Vector3.up * 15, ForceMode.Impulse); // 점프 파워를 지정
             anim.SetBool("isJump", true); // 연속 점프를 막기 위한것
@@ -99,12 +112,12 @@ public class Player : MonoBehaviour
     void Dodge()
     {
         //점프를 하고 있지 않을때 
-        if(jDown && moveVec != Vector3.zero && !isjump && !isDodge) // 조건을 통해 닷지든 점프든 한개만 
+        if (jDown && moveVec != Vector3.zero && !isjump && !isDodge && !isSwap) // 조건을 통해 닷지든 점프든 한개만 
         {
             dodgeVec = moveVec; //닷지백터의 이용
             speed *= 2; //속도를 두배로 늘렸다.
             anim.SetTrigger("doDodge"); //애니메이션
-            isDodge = true; 
+            isDodge = true;
 
             Invoke("DodgeOut", 0.5f); // 인보크 함수로 시간차 함수를 호출하였다. 첫번째 파라메터와 두번째 파라메터를 적용하였다.  
         }
@@ -115,6 +128,44 @@ public class Player : MonoBehaviour
         speed *= 0.5f;
         isDodge = false; // 닷지가 끝나면 
     }
+
+    void Swap()
+    {
+        if (sDown1 && (!hasweapons[0] || equipWeaponIndex == 0))
+            return;
+        if (sDown2 && (!hasweapons[1] || equipWeaponIndex == 1))
+            return;
+        if (sDown3 && (!hasweapons[2] || equipWeaponIndex == 2))
+            return;
+
+        int weaponIndex = -1;
+        if(sDown1) weaponIndex = 0;
+        if(sDown2) weaponIndex = 1;
+        if(sDown3) weaponIndex = 2;
+
+        if ((sDown1 || sDown2 || sDown3) && !isjump && !isDodge) 
+        {
+            if(equipWeapon !=  null) 
+            equipWeapon.SetActive(false);
+
+
+            equipWeaponIndex = weaponIndex;
+            equipWeapon = weapons[weaponIndex];
+            equipWeapon.SetActive(true);
+
+            anim.SetTrigger("doSwap");
+
+            isSwap = true;
+
+            Invoke("SwapOut", 0.4f);
+        }
+    }
+    void SwapOut()
+    {
+       
+        isSwap = false; 
+    }
+
 
     void Interation()
     {
@@ -143,16 +194,20 @@ public class Player : MonoBehaviour
 
     void OnTriggerStay(Collider other)
     {
-        if (other.tag == "weapon") // 웨폰 태그면 아래의 오브젝트에 저장한다.
+        if (other.tag == "Weapon") // 웨폰 태그면 아래의 오브젝트에 저장한다.
+        { 
             nearObject = other.gameObject;
+            Debug.Log(nearObject.name);
+        }
         
-        Debug.Log(nearObject.name);
+        
+        
     }
 
 
     void OnTriggerExit(Collider other)
     {
-        if (other.tag == "weapon") // 웨폰 태그의 영향에서 벗어나면 널값을 적용한다.
+        if (other.tag == "Weapon") // 웨폰 태그의 영향에서 벗어나면 널값을 적용한다.
             nearObject = null;
     }
 
