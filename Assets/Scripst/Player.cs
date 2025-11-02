@@ -7,12 +7,27 @@ public class Player : MonoBehaviour
     public float speed; // 스피드 변수 선언
     public GameObject[] weapons;
     public bool[] hasweapons;
+    public GameObject[] grenades;
+    public int hasGrenades;
+
+    public int ammo;
+    public int coin;
+    public int health;
+    
+    
+    public int maxAmmo;
+    public int maxCoin;
+    public int maxHealth;
+    public int maxhasGrenade;
+
+
 
     float hAxis; // 이동을 위한 변수 선언
     float vAxis; // 이동을 위한 변수 선언
 
     bool wDown; // 걷기를 위한 변수 선언
     bool jDown; // 점프를 위한 변수 선언
+    bool fDown; // 공격을 위한 변수 선언
     bool iDown;
     bool sDown1;
     bool sDown2;
@@ -21,6 +36,7 @@ public class Player : MonoBehaviour
     bool isjump; // 당신은 지금 점프를 하고 있습니까? 변수 선언
     bool isDodge; // 닷지를 위한 변수 선언
     bool isSwap;
+    bool isFireReady =true;
 
     Vector3 moveVec; // 이동을 위한 변수 선언
     Vector3 dodgeVec; // 닷지를 위한 변수 선언
@@ -29,8 +45,9 @@ public class Player : MonoBehaviour
     Animator anim; // 애니메이션을 위한 변수 선언
 
     GameObject nearObject; //오브젝트 먹기를 위한 변수 선언
-    GameObject equipWeapon;
+    Weapon equipWeapon;
     int equipWeaponIndex = -1;
+    float fireDelay;
 
     void Awake()
     {
@@ -47,6 +64,7 @@ public class Player : MonoBehaviour
         Move();
         Turn();
         Jump();
+        Attact();
         Dodge();
         Swap();
         Interation();
@@ -59,6 +77,7 @@ public class Player : MonoBehaviour
         vAxis = Input.GetAxisRaw("Vertical"); //이동 함수의 초기화
         wDown = Input.GetButton("Walk"); //걷기 함수의 초기화
         jDown = Input.GetButtonDown("Jump"); //점프 함수의 초기화
+        fDown = Input.GetButtonDown("Fire1");
         iDown = Input.GetButtonDown("Interation");
         sDown1 = Input.GetButtonDown("Swap1");
         sDown2 = Input.GetButtonDown("Swap2");
@@ -80,7 +99,7 @@ public class Player : MonoBehaviour
         //transform을 사용하면 델타 타임을 꼭 넣어야 한다.
         //델타 타임은 초당 실행횟수인데 간단하게 말하면, 똥컴이든 좋은컴이든 동일한 속도로 1초당 이동거리가 동일하게 유지된다.
 
-        if(isSwap)
+        if(isSwap || !isFireReady)
             moveVec = Vector3.zero;
 
         if (wDown)
@@ -109,6 +128,24 @@ public class Player : MonoBehaviour
             isjump = true;
         }
     }
+
+    void Attact()
+    {
+        if (equipWeapon == null)
+            return;
+
+        fireDelay += Time.deltaTime;
+        isFireReady = equipWeapon.rate < fireDelay;
+
+        if(fDown && isFireReady && !isDodge && !isSwap)
+        {
+            equipWeapon.Use();
+            anim.SetTrigger("doSwing");
+            fireDelay = 0;
+        }
+    }
+
+
     void Dodge()
     {
         //점프를 하고 있지 않을때 
@@ -146,12 +183,12 @@ public class Player : MonoBehaviour
         if ((sDown1 || sDown2 || sDown3) && !isjump && !isDodge) 
         {
             if(equipWeapon !=  null) 
-            equipWeapon.SetActive(false);
+            equipWeapon.gameObject.SetActive(false);
 
 
             equipWeaponIndex = weaponIndex;
-            equipWeapon = weapons[weaponIndex];
-            equipWeapon.SetActive(true);
+            equipWeapon = weapons[weaponIndex].GetComponent<Weapon>();
+            equipWeapon.gameObject.SetActive(true);
 
             anim.SetTrigger("doSwap");
 
@@ -191,6 +228,44 @@ public class Player : MonoBehaviour
             isjump = false;
         }
     }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if(other.tag == "Item")
+        {
+            item item = other.GetComponent<item>();
+            switch(item.type)
+            {
+                case item.Type.Ammo:
+                    ammo += item.value;
+                    if(ammo > maxAmmo)
+                        ammo = maxAmmo;
+                    break;
+                case item.Type.Coin:
+                    coin += item.value;
+                    if (coin > maxCoin)
+                        coin = maxCoin;
+                    break;
+                case item.Type.Heart:
+                    health += item.value;
+                    if (health > maxHealth)
+                        health = maxHealth;
+                    break;
+                case item.Type.Grenade:
+                    grenades[hasGrenades].SetActive(true);
+                    hasGrenades += item.value;
+                    if (hasGrenades > maxhasGrenade)
+                        hasGrenades = maxhasGrenade;
+                    break;
+
+            }
+
+            Destroy(other.gameObject);
+
+
+        }
+    }
+
 
     void OnTriggerStay(Collider other)
     {
